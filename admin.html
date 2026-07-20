@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#04060E;--surface:#08091A;--card:#0B0D1F;--glow:#9BB5FF;--white:#F2F0FA;--muted:#4A5070;--border:rgba(155,181,255,0.1);--red:#CC2244;--green:#1a8a46}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--white);font-family:'Space Grotesk','Cairo',sans-serif;min-height:100vh}
+
+/* LOGIN */
+#login-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:0}
+.login-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:48px 40px;width:380px;max-width:90vw;
+  display:flex;flex-direction:column;gap:20px}
+.login-logo{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:13px;
+  letter-spacing:5px;color:var(--white);text-align:center;margin-bottom:8px}
+.login-logo span{color:var(--glow)}
+.login-title{font-size:11px;letter-spacing:3px;color:var(--muted);text-align:center;text-transform:uppercase;margin-bottom:16px}
+.login-field{display:flex;flex-direction:column;gap:8px}
+.login-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.login-input{
+  background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  color:var(--white);padding:13px 16px;border-radius:8px;
+  font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;
+  transition:border-color 0.2s;width:100%}
+.login-input:focus{border-color:rgba(155,181,255,0.45)}
+.login-btn{
+  background:var(--glow);color:#04060E;padding:14px;
+  border:none;border-radius:8px;font-weight:700;font-size:13px;
+  letter-spacing:2px;cursor:pointer;transition:opacity 0.2s;
+  font-family:'Space Grotesk',sans-serif;text-transform:uppercase;margin-top:4px}
+.login-btn:hover{opacity:0.85}
+.login-err{font-size:12px;color:var(--red);text-align:center;min-height:18px;letter-spacing:1px}
+
+/* ADMIN PANEL */
+#admin-panel{display:none;padding-bottom:80px}
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 5vw;border-bottom:1px solid var(--border);
+  background:rgba(4,6,14,0.9);backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:13px;letter-spacing:4px}
+.hdr-logo span{color:var(--glow)}
+.hdr-right{display:flex;gap:12px;align-items:center}
+.hdr-btn{
+  font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;padding:8px 18px;border-radius:6px;cursor:pointer;
+  transition:all 0.2s;text-decoration:none;border:1px solid}
+.btn-back{color:var(--muted);border-color:var(--border)}
+.btn-back:hover{color:var(--white);border-color:rgba(155,181,255,0.3)}
+.btn-save-top{color:#04060E;background:var(--glow);border-color:var(--glow);font-weight:700}
+.btn-save-top:hover{opacity:0.85}
+
+.wrap{max-width:900px;margin:0 auto;padding:40px 5vw;display:flex;flex-direction:column;gap:28px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-header{
+  padding:20px 28px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  background:rgba(155,181,255,0.02)}
+.card-icon{font-size:16px;opacity:0.7}
+.card-title{font-family:'Space Grotesk',sans-serif;font-size:11px;
+  letter-spacing:3px;color:rgba(155,181,255,0.6);text-transform:uppercase;font-weight:600}
+.card-body{padding:28px;display:flex;flex-direction:column;gap:18px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+
+.field{display:flex;flex-direction:column;gap:7px}
+label{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;
+  font-family:'Space Grotesk',sans-serif}
+input[type=text],input[type=password],textarea{
+  background:rgba(0,0,0,0.35);border:1px solid var(--border);
+  color:var(--white);padding:12px 14px;border-radius:7px;
+  font-family:'Cairo','Space Grotesk',sans-serif;font-size:14px;
+  outline:none;transition:border-color 0.2s;width:100%;line-height:1.6}
+input:focus,textarea:focus{border-color:rgba(155,181,255,0.4)}
+textarea{resize:vertical;min-height:72px}
+.hint{font-size:11px;color:rgba(74,80,112,0.7);line-height:1.5;margin-top:2px;
+  font-family:'Space Grotesk',sans-serif}
+
+.save-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  padding:16px 5vw;background:rgba(4,6,14,0.95);
+  border-top:1px solid var(--border);
+  display:flex;gap:14px;align-items:center;justify-content:center;
+  backdrop-filter:blur(16px)}
+.save-main{
+  background:var(--glow);color:#04060E;padding:13px 40px;
+  border:none;border-radius:8px;font-weight:700;font-size:13px;
+  letter-spacing:2px;cursor:pointer;transition:opacity 0.2s;
+  font-family:'Space Grotesk',sans-serif;text-transform:uppercase}
+.save-main:hover{opacity:0.85}
+.save-reset{
+  background:transparent;color:var(--muted);padding:13px 24px;
+  border:1px solid var(--border);border-radius:8px;font-size:12px;
+  letter-spacing:1px;cursor:pointer;transition:all 0.2s;
+  font-family:'Space Grotesk',sans-serif;text-transform:uppercase}
+.save-reset:hover{color:var(--red);border-color:rgba(204,34,68,0.4)}
+
+.toast{
+  position:fixed;bottom:90px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--green);color:#fff;padding:13px 28px;
+  border-radius:8px;font-size:13px;font-weight:700;
+  opacity:0;transition:all 0.4s;pointer-events:none;z-index:9999;
+  letter-spacing:1px;font-family:'Space Grotesk',sans-serif;
+  text-transform:uppercase;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">NON<span>REAL</span> ESTATE</div>
+    <div class="login-title">⚙ Admin Access</div>
+    <div class="login-field">
+      <div class="login-label">Username</div>
+      <input class="login-input" type="text" id="uname" placeholder="username" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <div class="login-label">Password</div>
+      <input class="login-input" type="password" id="pass" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="doLogin()">Enter</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+<header>
+  <div class="hdr-logo">NON<span>REAL</span> ⚙ ADMIN</div>
+  <div class="hdr-right">
+    <a href="index.html" class="hdr-btn btn-back">← Preview</a>
+    <button class="hdr-btn btn-save-top" onclick="saveAll()">Save</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🏷</span><div class="card-title">Branding</div></div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field full">
+          <label>Logo Text</label>
+          <input type="text" id="logoText" placeholder="NONREAL ESTATE">
+        </div>
+        <div class="field full">
+          <label>Highlighted Word (shown in blue)</label>
+          <input type="text" id="logoHighlight" placeholder="REAL">
+          <div class="hint">Must match part of the logo text exactly</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🎬</span><div class="card-title">Hero Section</div></div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Chapter — Arabic</label><input type="text" id="chapterAr"></div>
+        <div class="field"><label>Chapter — English</label><input type="text" id="chapterEn"></div>
+        <div class="field full"><label>Title — Arabic</label><textarea id="titleAr"></textarea>
+          <div class="hint">Use &lt;em&gt;word&lt;/em&gt; for blue highlight. Use &lt;br&gt; for new line.</div></div>
+        <div class="field full"><label>Title — English</label><textarea id="titleEn"></textarea></div>
+        <div class="field full"><label>Subtitle — Arabic</label><textarea id="subAr"></textarea></div>
+        <div class="field full"><label>Subtitle — English</label><textarea id="subEn"></textarea></div>
+        <div class="field"><label>Demo Button — Arabic</label><input type="text" id="demoBtnAr"></div>
+        <div class="field"><label>Demo Button — English</label><input type="text" id="demoBtnEn"></div>
+        <div class="field"><label>Pricing Button — Arabic</label><input type="text" id="priceBtnAr"></div>
+        <div class="field"><label>Pricing Button — English</label><input type="text" id="priceBtnEn"></div>
+        <div class="field"><label>Nav CTA — Arabic</label><input type="text" id="navCtaAr"></div>
+        <div class="field"><label>Nav CTA — English</label><input type="text" id="navCtaEn"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📊</span><div class="card-title">Stats Bar</div></div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Stat 1 — Arabic</label><input type="text" id="st1Ar"></div>
+        <div class="field"><label>Stat 1 — English</label><input type="text" id="st1En"></div>
+        <div class="field"><label>Stat 2 — Arabic</label><input type="text" id="st2Ar"></div>
+        <div class="field"><label>Stat 2 — English</label><input type="text" id="st2En"></div>
+        <div class="field"><label>Stat 3 — Arabic</label><input type="text" id="st3Ar"></div>
+        <div class="field"><label>Stat 3 — English</label><input type="text" id="st3En"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">⚡</span><div class="card-title">How It Works</div></div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Eyebrow — Arabic</label><input type="text" id="howEyebrowAr"></div>
+        <div class="field"><label>Eyebrow — English</label><input type="text" id="howEyebrowEn"></div>
+        <div class="field"><label>Title — Arabic</label><input type="text" id="howTitleAr"></div>
+        <div class="field"><label>Title — English</label><input type="text" id="howTitleEn"></div>
+        <div class="field full"><label>Subtitle — Arabic</label><textarea id="howSubAr"></textarea></div>
+        <div class="field full"><label>Subtitle — English</label><textarea id="howSubEn"></textarea></div>
+
+        <div class="field"><label>Step 1 Title — Arabic</label><input type="text" id="s1tAr"></div>
+        <div class="field"><label>Step 1 Title — English</label><input type="text" id="s1tEn"></div>
+        <div class="field"><label>Step 1 Point 1 — Arabic</label><input type="text" id="s1s1Ar"></div>
+        <div class="field"><label>Step 1 Point 1 — English</label><input type="text" id="s1s1En"></div>
+        <div class="field"><label>Step 1 Point 2 — Arabic</label><input type="text" id="s1s2Ar"></div>
+        <div class="field"><label>Step 1 Point 2 — English</label><input type="text" id="s1s2En"></div>
+        <div class="field"><label>Step 1 Point 3 — Arabic</label><input type="text" id="s1s3Ar"></div>
+        <div class="field"><label>Step 1 Point 3 — English</label><input type="text" id="s1s3En"></div>
+
+        <div class="field"><label>Step 2 Title — Arabic</label><input type="text" id="s2tAr"></div>
+        <div class="field"><label>Step 2 Title — English</label><input type="text" id="s2tEn"></div>
+        <div class="field"><label>Step 2 Point 1 — Arabic</label><input type="text" id="s2s1Ar"></div>
+        <div class="field"><label>Step 2 Point 1 — English</label><input type="text" id="s2s1En"></div>
+        <div class="field"><label>Step 2 Point 2 — Arabic</label><input type="text" id="s2s2Ar"></div>
+        <div class="field"><label>Step 2 Point 2 — English</label><input type="text" id="s2s2En"></div>
+        <div class="field"><label>Step 2 Point 3 — Arabic</label><input type="text" id="s2s3Ar"></div>
+        <div class="field"><label>Step 2 Point 3 — English</label><input type="text" id="s2s3En"></div>
+
+        <div class="field"><label>Step 3 Title — Arabic</label><input type="text" id="s3tAr"></div>
+        <div class="field"><label>Step 3 Title — English</label><input type="text" id="s3tEn"></div>
+        <div class="field"><label>Step 3 Point 1 — Arabic</label><input type="text" id="s3s1Ar"></div>
+        <div class="field"><label>Step 3 Point 1 — English</label><input type="text" id="s3s1En"></div>
+        <div class="field"><label>Step 3 Point 2 — Arabic</label><input type="text" id="s3s2Ar"></div>
+        <div class="field"><label>Step 3 Point 2 — English</label><input type="text" id="s3s2En"></div>
+        <div class="field"><label>Step 3 Point 3 — Arabic</label><input type="text" id="s3s3Ar"></div>
+        <div class="field"><label>Step 3 Point 3 — English</label><input type="text" id="s3s3En"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">💰</span><div class="card-title">Pricing</div></div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Eyebrow — Arabic</label><input type="text" id="priceEyebrowAr"></div>
+        <div class="field"><label>Eyebrow — English</label><input type="text" id="priceEyebrowEn"></div>
+        <div class="field"><label>Title — Arabic</label><input type="text" id="priceTitleAr"></div>
+        <div class="field"><label>Title — English</label><input type="text" id="priceTitleEn"></div>
+        <div class="field full"><label>Subtitle — Arabic</label><textarea id="priceSubAr"></textarea></div>
+        <div class="field full"><label>Subtitle — English</label><textarea id="priceSubEn"></textarea></div>
+
+        <div class="field"><label>Plan 1 Name</label><input type="text" id="p1name"></div>
+        <div class="field"><label>Plan 1 Price (number only)</label><input type="text" id="p1price"></div>
+        <div class="field"><label>Plan 1 Currency — Arabic</label><input type="text" id="p1curAr"></div>
+        <div class="field"><label>Plan 1 Currency — English</label><input type="text" id="p1curEn"></div>
+        <div class="field"><label>Plan 1 Period — Arabic</label><input type="text" id="p1periodAr"></div>
+        <div class="field"><label>Plan 1 Period — English</label><input type="text" id="p1periodEn"></div>
+        <div class="field full"><label>Plan 1 Features — Arabic (separate with |)</label><textarea id="p1featsAr"></textarea></div>
+        <div class="field full"><label>Plan 1 Features — English (separate with |)</label><textarea id="p1featsEn"></textarea></div>
+        <div class="field"><label>Plan 1 Button — Arabic</label><input type="text" id="p1btnAr"></div>
+        <div class="field"><label>Plan 1 Button — English</label><input type="text" id="p1btnEn"></div>
+
+        <div class="field"><label>Plan 2 Badge — Arabic</label><input type="text" id="p2badge"></div>
+        <div class="field"><label>Plan 2 Badge — English</label><input type="text" id="p2badgeEn"></div>
+        <div class="field"><label>Plan 2 Name</label><input type="text" id="p2name"></div>
+        <div class="field"><label>Plan 2 Price</label><input type="text" id="p2price"></div>
+        <div class="field"><label>Plan 2 Currency — Arabic</label><input type="text" id="p2curAr"></div>
+        <div class="field"><label>Plan 2 Currency — English</label><input type="text" id="p2curEn"></div>
+        <div class="field"><label>Plan 2 Period — Arabic</label><input type="text" id="p2periodAr"></div>
+        <div class="field"><label>Plan 2 Period — English</label><input type="text" id="p2periodEn"></div>
+        <div class="field full"><label>Plan 2 Features — Arabic</label><textarea id="p2featsAr"></textarea></div>
+        <div class="field full"><label>Plan 2 Features — English</label><textarea id="p2featsEn"></textarea></div>
+        <div class="field"><label>Plan 2 Button — Arabic</label><input type="text" id="p2btnAr"></div>
+        <div class="field"><label>Plan 2 Button — English</label><input type="text" id="p2btnEn"></div>
+
+        <div class="field"><label>Plan 3 Name</label><input type="text" id="p3name"></div>
+        <div class="field"><label>Plan 3 Price</label><input type="text" id="p3price"></div>
+        <div class="field"><label>Plan 3 Currency — Arabic</label><input type="text" id="p3curAr"></div>
+        <div class="field"><label>Plan 3 Currency — English</label><input type="text" id="p3curEn"></div>
+        <div class="field"><label>Plan 3 Period — Arabic</label><input type="text" id="p3periodAr"></div>
+        <div class="field"><label>Plan 3 Period — English</label><input type="text" id="p3periodEn"></div>
+        <div class="field full"><label>Plan 3 Features — Arabic</label><textarea id="p3featsAr"></textarea></div>
+        <div class="field full"><label>Plan 3 Features — English</label><textarea id="p3featsEn"></textarea></div>
+        <div class="field"><label>Plan 3 Button — Arabic</label><input type="text" id="p3btnAr"></div>
+        <div class="field"><label>Plan 3 Button — English</label><input type="text" id="p3btnEn"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📢</span><div class="card-title">CTA & Footer</div></div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field full"><label>CTA Title — Arabic</label><textarea id="ctaTitleAr"></textarea><div class="hint">Use &lt;br&gt; for new line</div></div>
+        <div class="field full"><label>CTA Title — English</label><textarea id="ctaTitleEn"></textarea></div>
+        <div class="field full"><label>CTA Subtitle — Arabic</label><textarea id="ctaSubAr"></textarea></div>
+        <div class="field full"><label>CTA Subtitle — English</label><textarea id="ctaSubEn"></textarea></div>
+        <div class="field"><label>WhatsApp Button — Arabic</label><input type="text" id="waBtnAr"></div>
+        <div class="field"><label>WhatsApp Button — English</label><input type="text" id="waBtnEn"></div>
+        <div class="field"><label>Footer Copyright — Arabic</label><input type="text" id="footerCopyAr"></div>
+        <div class="field"><label>Footer Copyright — English</label><input type="text" id="footerCopyEn"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🔗</span><div class="card-title">Links</div></div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field full">
+          <label>WhatsApp Number (digits only)</label>
+          <input type="text" id="whatsapp" placeholder="201000000000">
+          <div class="hint">No + or spaces — e.g. 201234567890</div>
+        </div>
+        <div class="field full">
+          <label>Demo URL</label>
+          <input type="text" id="demoUrl" placeholder="https://your-demo.vercel.app">
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="save-bar">
+  <button class="save-reset" onclick="resetAll()">Reset to defaults</button>
+  <button class="save-main" onclick="saveAll()">💾 Save Changes</button>
+</div>
+</div>
+
+<div class="toast" id="toast">✓ Saved successfully</div>
+
+<script>
+// ── LOGIN ──────────────────────────────────────
+const CREDS = {user:'nonreal', pass:'NRE@2026'};
+
+function doLogin(){
+  const u=document.getElementById('uname').value.trim();
+  const p=document.getElementById('pass').value;
+  const err=document.getElementById('login-err');
+  if(u===CREDS.user && p===CREDS.pass){
+    sessionStorage.setItem('nre_auth','1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    loadForm();
+  } else {
+    err.textContent='Invalid credentials';
+    setTimeout(()=>err.textContent='',2500);
+  }
+}
+
+// Auto-login if session exists
+if(sessionStorage.getItem('nre_auth')==='1'){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('admin-panel').style.display='block';
+}
+
+// ── DATA ───────────────────────────────────────
+const DEF = {
+  logoText:'NONREAL ESTATE', logoHighlight:'REAL',
+  chapterAr:'𓂀 الفصل الأول — تجربة العقار', chapterEn:'𓂀 CHAPTER ONE — THE EXPERIENCE',
+  titleAr:'رؤية أعمق،<br><em>قرار أفضل</em>', titleEn:'Deeper Vision,<br><em>Better Decision</em>',
+  subAr:'نُحوّل أي عقار إلى تجربة ثلاثية الأبعاد تتجوّل فيها وتُغيّر الإضاءة والأثاث.',
+  subEn:'We transform any property into a full 3D experience — walk through it, change lighting and furniture.',
+  demoBtnAr:'جرّب الديمو', demoBtnEn:'Try the Demo',
+  priceBtnAr:'الأسعار', priceBtnEn:'Pricing',
+  navCtaAr:'تواصل معنا', navCtaEn:'Contact Us',
+  st1Ar:'تفاعل أعلى من الصور', st1En:'Higher engagement',
+  st2Ar:'تحكم كامل بالزاوية', st2En:'Full angle control',
+  st3Ar:'وقت تسليم المجسم', st3En:'Model delivery time',
+  howEyebrowAr:'𓆑 ACT I — كيف يعمل', howEyebrowEn:'𓆑 ACT I — HOW IT WORKS',
+  howTitleAr:'ثلاث خطوات فقط', howTitleEn:'Three steps only',
+  howSubAr:'من القياسات إلى رابط تفاعلي يُرسَل لعملائك — بدون تعقيد.',
+  howSubEn:'From blueprint to interactive link — no technical knowledge needed.',
+  s1tAr:'أرسل المخطط', s1tEn:'Send the Blueprint',
+  s1s1Ar:'مخطط PDF أو صورة موبايل', s1s1En:'PDF or phone photo of floor plan',
+  s1s2Ar:'لا خبرة تقنية مطلوبة', s1s2En:'Zero technical knowledge needed',
+  s1s3Ar:'حتى رسم يد يكفي', s1s3En:'Even a hand sketch works',
+  s2tAr:'نبني المجسم الرقمي', s2tEn:'We Build the Digital Model',
+  s2s1Ar:'محرك Three.js بإضاءة ديناميكية', s2s1En:'Three.js engine with dynamic lighting',
+  s2s2Ar:'أثاث قابل للتبديل', s2s2En:'Switchable furniture (modern/classic)',
+  s2s3Ar:'تسليم خلال 72 ساعة', s2s3En:'Delivered within 72 hours',
+  s3tAr:'اكتشف عقارك', s3tEn:'Explore Your Property',
+  s3s1Ar:'مشي حر داخل الشقة', s3s1En:'Free walk inside the apartment',
+  s3s2Ar:'تغيير الإضاءة في الوقت الحقيقي', s3s2En:'Real-time lighting control',
+  s3s3Ar:'يعمل من أي متصفح بدون تطبيق', s3s3En:'Works in any browser, no app needed',
+  demoEyebrowAr:'𓋹 نموذج حي', demoEyebrowEn:'𓋹 LIVE DEMO',
+  demoTextAr:'اضغط لفتح الجولة الثلاثية الأبعاد', demoTextEn:'Click to open the 3D tour',
+  demoCaptionAr:'يعمل على المتصفح مباشرةً — لا يحتاج تطبيق', demoCaptionEn:'Runs in browser — no app needed',
+  priceEyebrowAr:'𓇋 ACT II — الأسعار', priceEyebrowEn:'𓇋 ACT II — PRICING',
+  priceTitleAr:'ابدأ بعقار واحد', priceTitleEn:'Start with one property',
+  priceSubAr:'جميع الباقات تشمل جولة مشي كاملة، تغيير إضاءة، وتبديل أثاث.',
+  priceSubEn:'All plans include full walk mode, dynamic lighting, and furniture switching.',
+  p1name:'Starter', p1price:'1,000', p1curAr:'ج.م', p1curEn:'SAR',
+  p1periodAr:'شهرياً · عقار واحد', p1periodEn:'/month · 1 property',
+  p1featsAr:'عقار واحد نشط|تغيير الإضاءة والوقت|رابط مشاركة|دعم واتساب',
+  p1featsEn:'1 active property|Lighting & time control|Shareable link|WhatsApp support',
+  p1btnAr:'ابدأ الآن', p1btnEn:'Get Started',
+  p2badge:'الأكثر طلباً', p2badgeEn:'Most Popular',
+  p2name:'Pro', p2price:'2,500', p2curAr:'ج.م', p2curEn:'SAR',
+  p2periodAr:'شهرياً · 5 عقارات', p2periodEn:'/month · 5 properties',
+  p2featsAr:'5 عقارات نشطة|تبديل الأثاث عصري/كلاسيك|تغيير الأرضية والحوائط|فيديو سينمائي|أولوية التسليم',
+  p2featsEn:'5 active properties|Furniture switching (modern/classic)|Floor & wall materials|Cinematic video|Priority delivery',
+  p2btnAr:'ابدأ الآن', p2btnEn:'Get Started',
+  p3name:'Agency', p3price:'6,000', p3curAr:'ج.م', p3curEn:'SAR',
+  p3periodAr:'شهرياً · 20 عقار', p3periodEn:'/month · 20 properties',
+  p3featsAr:'20 عقاراً نشطاً|جميع مميزات Pro|لوحة تحكم خاصة|عقارات تحت الإنشاء|دعم 24/7',
+  p3featsEn:'20 active properties|All Pro features|Custom dashboard|Off-plan properties|24/7 support',
+  p3btnAr:'تواصل معنا', p3btnEn:'Contact Us',
+  ctaTitleAr:'دع عملاءك يعيشون<br>التجربة قبل الشراء',
+  ctaTitleEn:'Let your clients experience<br>the property before buying',
+  ctaSubAr:'تواصل معنا الآن وابدأ بأول عقار مجاناً كتجربة.',
+  ctaSubEn:'Contact us now and start with your first property — free trial.',
+  waBtnAr:'ابدأ على واتساب', waBtnEn:'Start on WhatsApp',
+  footerCopyAr:'© 2026 NonReal Estate. جميع الحقوق محفوظة.',
+  footerCopyEn:'© 2026 NonReal Estate. All rights reserved.',
+  whatsapp:'201000000000', demoUrl:'https://your-demo.vercel.app',
+};
+
+const KEYS = Object.keys(DEF);
+
+function loadForm(){
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem('nre_v2')||'{}');}catch(e){}
+  const data={...DEF,...saved};
+  KEYS.forEach(k=>{const el=document.getElementById(k);if(el)el.value=data[k]||'';});
+}
+
+function saveAll(){
+  const data={};
+  KEYS.forEach(k=>{const el=document.getElementById(k);if(el)data[k]=el.value.trim();});
+  localStorage.setItem('nre_v2',JSON.stringify(data));
+  const t=document.getElementById('toast');
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function resetAll(){
+  if(!confirm('Reset all to defaults?'))return;
+  localStorage.removeItem('nre_v2');
+  loadForm();
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'&&!e.target.id.match(/uname|pass/))saveAll();});
+
+if(sessionStorage.getItem('nre_auth')==='1') loadForm();
+</script>
+</body>
+</html>
