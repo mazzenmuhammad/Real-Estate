@@ -71,6 +71,26 @@ header{position:sticky;top:0;z-index:100;height:52px;display:flex;align-items:ce
 
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--green);color:#000;padding:12px 24px;border-radius:980px;font-size:13px;font-weight:700;opacity:0;transition:all 0.35s;pointer-events:none;z-index:9999;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* HDRI LIST */
+.hdri-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+}
+.hdri-icon{font-size:16px;flex-shrink:0}
+.hdri-name-input{
+  flex:1;background:transparent;border:none;color:var(--white);
+  font-family:'Inter',sans-serif;font-size:13px;outline:none;
+  border-bottom:1px solid transparent;transition:border-color 0.2s;
+}
+.hdri-name-input:focus{border-color:var(--blue)}
+.hdri-size{font-size:11px;color:var(--gray);flex-shrink:0}
+.hdri-del{
+  background:none;border:none;color:var(--red);cursor:pointer;
+  font-size:16px;padding:2px 6px;border-radius:4px;transition:background 0.2s;flex-shrink:0;
+}
+.hdri-del:hover{background:rgba(255,69,58,0.15)}
 </style>
 </head>
 <body>
@@ -187,6 +207,19 @@ header{position:sticky;top:0;z-index:100;height:52px;display:flex;align-items:ce
         <div class="field"><label>Plan 3 Price</label><input type="text" id="p3p"></div>
         <div class="field full"><label>Plan 3 Features (one per line)</label><textarea id="p3f"></textarea></div>
       </div>
+    </div>
+  </div>
+
+  <!-- HDRI LIBRARY -->
+  <div class="card">
+    <div class="card-hd"><span class="card-icon">🌅</span><div class="card-title">HDRI Library — 3D Viewer Lighting</div></div>
+    <div class="card-body">
+      <div class="img-upload" id="hdri-drop" onclick="document.getElementById('hdri-file').click()">
+        <div class="img-upload-text">اسحب ملف HDRI هنا (.hdr) أو <span>اضغط للاختيار</span><br><small style="color:rgba(110,110,115,0.5);font-size:11px">يُستخدم في صفحة الـ 3D Viewer لإضاءة واقعية</small></div>
+        <input type="file" id="hdri-file" accept=".hdr,.exr" onchange="handleHdriUpload(this)">
+      </div>
+      <div id="hdri-upload-status" style="font-size:12px;color:var(--blue);min-height:16px"></div>
+      <div id="hdri-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
     </div>
   </div>
 
@@ -325,6 +358,120 @@ function clearBg(){
   document.getElementById('bg-clear').style.display='none';
   document.getElementById('bg-file').value='';
 }
+
+// ── HDRI LIBRARY (IndexedDB) ──────────────────
+let hdriDB = null;
+function openHdriDB(){
+  return new Promise((res)=>{
+    const req = indexedDB.open('nre_hdri_db', 1);
+    req.onupgradeneeded = e=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains('hdris')) db.createObjectStore('hdris',{keyPath:'name'});
+    };
+    req.onsuccess = e=>{hdriDB=e.target.result; res(hdriDB);};
+    req.onerror = ()=>res(null);
+  });
+}
+function getAllHdris(){
+  return new Promise(res=>{
+    if(!hdriDB){res([]);return;}
+    const tx=hdriDB.transaction('hdris','readonly');
+    const req=tx.objectStore('hdris').getAll();
+    req.onsuccess=()=>res(req.result||[]);
+    req.onerror=()=>res([]);
+  });
+}
+function saveHdri(name, blob){
+  return new Promise(res=>{
+    const tx=hdriDB.transaction('hdris','readwrite');
+    tx.objectStore('hdris').put({name, blob, size: blob.size});
+    tx.oncomplete=()=>res();
+  });
+}
+function deleteHdri(name){
+  return new Promise(res=>{
+    const tx=hdriDB.transaction('hdris','readwrite');
+    tx.objectStore('hdris').delete(name);
+    tx.oncomplete=()=>res();
+  });
+}
+function renameHdri(oldName, newName, blob){
+  return new Promise(async res=>{
+    await deleteHdri(oldName);
+    await saveHdri(newName, blob);
+    res();
+  });
+}
+
+async function refreshHdriList(){
+  const list = await getAllHdris();
+  const wrap = document.getElementById('hdri-list');
+  wrap.innerHTML = '';
+  list.forEach(h=>{
+    const row = document.createElement('div');
+    row.className = 'hdri-item';
+    const sizeMB = (h.size/1024/1024).toFixed(1);
+    row.innerHTML = `
+      <span class="hdri-icon">🌅</span>
+      <input class="hdri-name-input" value="${h.name.replace(/"/g,'&quot;')}" data-old="${h.name.replace(/"/g,'&quot;')}">
+      <span class="hdri-size">${sizeMB} MB</span>
+      <button class="hdri-del">×</button>
+    `;
+    const input = row.querySelector('.hdri-name-input');
+    input.addEventListener('change', async ()=>{
+      const oldName = input.dataset.old;
+      const newName = input.value.trim();
+      if(!newName || newName===oldName) return;
+      await renameHdri(oldName, newName, h.blob);
+      input.dataset.old = newName;
+      showToast('✓ تم إعادة التسمية');
+    });
+    row.querySelector('.hdri-del').addEventListener('click', async ()=>{
+      if(!confirm(`حذف "${h.name}"؟`)) return;
+      await deleteHdri(h.name);
+      refreshHdriList();
+      showToast('✓ تم الحذف');
+    });
+    wrap.appendChild(row);
+  });
+}
+
+async function handleHdriUpload(inp){
+  const file = inp.files[0];
+  if(!file) return;
+  const status = document.getElementById('hdri-upload-status');
+  status.textContent = 'جاري الرفع...';
+  await openHdriDB();
+  let name = file.name.replace(/\.(hdr|exr)$/i,'');
+  const existing = await getAllHdris();
+  let finalName = name, n=1;
+  while(existing.some(h=>h.name===finalName)){ finalName = name+' ('+(++n)+')'; }
+  await saveHdri(finalName, file);
+  status.textContent = '✓ تم الرفع بنجاح';
+  setTimeout(()=>status.textContent='',2000);
+  refreshHdriList();
+  inp.value='';
+}
+
+document.getElementById('hdri-drop').addEventListener('dragover', e=>{e.preventDefault();e.currentTarget.classList.add('drag');});
+document.getElementById('hdri-drop').addEventListener('dragleave', e=>e.currentTarget.classList.remove('drag'));
+document.getElementById('hdri-drop').addEventListener('drop', e=>{
+  e.preventDefault();e.currentTarget.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if(!f) return;
+  const inp = document.getElementById('hdri-file');
+  const dt = new DataTransfer(); dt.items.add(f); inp.files = dt.files;
+  handleHdriUpload(inp);
+});
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>{t.classList.remove('show');t.textContent='✓ Saved';},2000);
+}
+
+openHdriDB().then(refreshHdriList);
 
 // Drag support
 ['logo-drop','bg-drop'].forEach(id=>{
