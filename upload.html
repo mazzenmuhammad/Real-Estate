@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ابدأ مشروعك — نون ريل استيت</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--black:#000;--white:#f5f5f7;--gray:#6e6e73;--blue:#2997ff;--border:rgba(255,255,255,0.12)}
+body{background:var(--black);color:var(--white);font-family:'Inter','Cairo',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:900}
+.nav-logo{font-size:17px;font-weight:800;color:var(--white);text-decoration:none}
+.nav-logo span{color:var(--blue)}
+.nav-back{font-size:13px;color:var(--gray);text-decoration:none;transition:color 0.2s}
+.nav-back:hover{color:var(--white)}
+
+main{max-width:640px;margin:0 auto;padding:110px 24px 80px}
+h1{font-size:clamp(32px,5.5vw,48px);font-weight:800;letter-spacing:-1.5px;margin-bottom:10px;text-align:center;font-family:'Inter',sans-serif}
+.sub{font-size:16px;color:var(--gray);font-weight:300;text-align:center;margin-bottom:48px;line-height:1.7;font-family:'Cairo','Inter',sans-serif}
+
+.form-card{background:#0a0a0a;border:1px solid var(--border);border-radius:18px;padding:36px;display:flex;flex-direction:column;gap:24px}
+.field{display:flex;flex-direction:column;gap:8px}
+label{font-size:13px;color:var(--gray);font-weight:500;letter-spacing:0.3px}
+input,textarea{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  color:var(--white);padding:14px 16px;border-radius:10px;
+  font-family:'Cairo','Inter',sans-serif;font-size:15px;outline:none;
+  transition:border-color 0.2s;width:100%
+}
+input:focus,textarea:focus{border-color:var(--blue)}
+textarea{resize:vertical;min-height:90px;line-height:1.7}
+
+/* PACKAGE SELECTOR */
+.pkg-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.pkg-option{
+  background:rgba(255,255,255,0.03);border:1.5px solid var(--border);
+  border-radius:12px;padding:16px 18px;cursor:pointer;
+  transition:all 0.2s;position:relative;
+}
+.pkg-option:hover{border-color:rgba(41,151,255,0.35)}
+.pkg-option.selected{border-color:var(--blue);background:rgba(41,151,255,0.06)}
+.pkg-option input[type=radio]{display:none}
+.pkg-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pkg-name{font-size:15px;font-weight:700}
+.pkg-price{font-size:16px;font-weight:800;color:var(--blue)}
+.pkg-desc{font-size:12.5px;color:var(--gray);line-height:1.6;font-family:'Cairo','Inter',sans-serif}
+.pkg-badge{position:absolute;top:-9px;right:16px;background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.3px}
+.pkg-check{
+  position:absolute;top:16px;left:16px;width:18px;height:18px;
+  border-radius:50%;border:1.5px solid rgba(255,255,255,0.25);
+  display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+}
+.pkg-option.selected .pkg-check{border-color:var(--blue);background:var(--blue)}
+.pkg-check::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;opacity:0;transition:opacity 0.2s}
+.pkg-option.selected .pkg-check::after{opacity:1}
+
+/* PHOTO UPLOAD */
+.drop-zone{
+  border:2px dashed rgba(255,255,255,0.15);border-radius:12px;
+  padding:32px 20px;text-align:center;cursor:pointer;
+  transition:all 0.2s;
+}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--blue);background:rgba(41,151,255,0.05)}
+.drop-icon{font-size:32px;margin-bottom:10px;display:block}
+.drop-text{font-size:14px;color:var(--gray);line-height:1.6}
+.drop-text span{color:var(--blue)}
+.drop-hint{font-size:12px;color:rgba(110,110,115,0.7);margin-top:6px}
+#file-input{display:none}
+#photo-previews{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.photo-thumb{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;background:#111}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-thumb .rm{position:absolute;top:2px;left:2px;background:rgba(0,0,0,0.7);color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer}
+#photo-count{font-size:12px;color:var(--blue);margin-top:10px;min-height:16px}
+
+.submit-btn{
+  background:var(--blue);color:#fff;
+  padding:16px;border:none;border-radius:980px;
+  font-size:17px;font-weight:600;cursor:pointer;
+  font-family:'Inter','Cairo',sans-serif;
+  transition:opacity 0.2s;margin-top:8px;
+}
+.submit-btn:hover{opacity:0.85}
+
+.success{display:none;text-align:center;padding:60px 0}
+.success h2{font-size:32px;font-weight:800;margin-bottom:12px;font-family:'Inter',sans-serif}
+.success p{font-size:17px;color:var(--gray);font-family:'Cairo','Inter',sans-serif;line-height:1.7}
+.success a{display:inline-block;margin-top:32px;color:var(--blue);text-decoration:none;font-size:15px}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo" id="nav-logo-link">
+    <span id="logo-text-wrap">نون<span>ريل</span> إستيت</span>
+  </a>
+  <a href="index.html" class="nav-back">← العودة</a>
+</nav>
+
+<main>
+  <div id="form-section">
+    <h1>ابدأ مشروعك</h1>
+    <p class="sub">أرسل إلينا صور عقارك، واستلم فيديو سينمائي احترافي جاهز خلال 24 ساعة.</p>
+
+    <div class="form-card">
+
+      <div class="field">
+        <label>الاسم</label>
+        <input type="text" id="f-name" placeholder="محمد أحمد">
+      </div>
+
+      <div class="field">
+        <label>رقم واتساب</label>
+        <input type="text" id="f-phone" placeholder="+201xxxxxxxxx">
+      </div>
+
+      <div class="field">
+        <label>نوع العقار والموقع</label>
+        <input type="text" id="f-prop" placeholder="فيلا — الشيخ زايد">
+      </div>
+
+      <div class="field">
+        <label>اختر الباقة</label>
+        <div class="pkg-grid" id="pkg-grid">
+          <label class="pkg-option" data-val="basic">
+            <input type="radio" name="pkg" value="basic">
+            <div class="pkg-check"></div>
+            <div class="pkg-top"><span class="pkg-name" id="p1-name">الجولة الأساسية</span><span class="pkg-price" id="p1-price">1,600 ج.م</span></div>
+            <div class="pkg-desc">جولة سينمائية لجميع غرف العقار، مع ملف PDF يوضح تفاصيله</div>
+          </label>
+          <label class="pkg-option selected" data-val="furniture">
+            <div class="pkg-badge">الأكثر طلباً</div>
+            <input type="radio" name="pkg" value="furniture" checked>
+            <div class="pkg-check"></div>
+            <div class="pkg-top"><span class="pkg-name" id="p2-name">الأثاث والإضاءة</span><span class="pkg-price" id="p2-price">3,500 ج.م</span></div>
+            <div class="pkg-desc">جميع مزايا الباقة الأساسية، مع نسختين للأثاث (عصري وكلاسيكي) وقياسات المساحات</div>
+          </label>
+          <label class="pkg-option" data-val="full">
+            <input type="radio" name="pkg" value="full">
+            <div class="pkg-check"></div>
+            <div class="pkg-top"><span class="pkg-name" id="p3-name">الباقة الكاملة</span><span class="pkg-price" id="p3-price">5,500 ج.م</span></div>
+            <div class="pkg-desc">جميع المزايا السابقة، مع نسختي نهار وليل، وتعليق صوتي، وأولوية في التسليم</div>
+          </label>
+          <label class="pkg-option" data-val="unsure">
+            <input type="radio" name="pkg" value="unsure">
+            <div class="pkg-check"></div>
+            <div class="pkg-top"><span class="pkg-name">غير متأكد</span></div>
+            <div class="pkg-desc">تواصل معنا وسنساعدك في اختيار الأنسب لعقارك</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>صور العقار</label>
+        <div class="drop-zone" onclick="document.getElementById('file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDrop(event)">
+          <span class="drop-icon">📷</span>
+          <div class="drop-text">اسحب الصور هنا أو <span>اضغط للاختيار</span></div>
+          <div class="drop-hint">تكفي من 10 إلى 17 صورة عادية بالهاتف</div>
+        </div>
+        <input type="file" id="file-input" accept="image/*" multiple onchange="handleFiles(this.files)">
+        <div id="photo-count"></div>
+        <div id="photo-previews"></div>
+      </div>
+
+      <div class="field">
+        <label>ملاحظات إضافية</label>
+        <textarea id="f-notes" placeholder="أي تفاصيل ترغب في إضافتها، مثل التركيز على المطبخ والصالة"></textarea>
+      </div>
+
+      <button class="submit-btn" onclick="submitForm()">إرسال الطلب ←</button>
+    </div>
+  </div>
+
+  <div class="success" id="success-section">
+    <div style="font-size:56px;margin-bottom:20px">✓</div>
+    <h2>تم إرسال طلبك بنجاح</h2>
+    <p>سنتواصل معك عبر واتساب لاستلام الصور ومتابعة الطلب خلال 24 ساعة.</p>
+    <a href="index.html">← العودة إلى الصفحة الرئيسية</a>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://lhaundlftjseqronzinl.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoYXVuZGxmdGpzZXFyb256aW5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwNDI3NTYsImV4cCI6MjEwMTYxODc1Nn0.cau52ENpOywFNtVkg3GaZ4t7jIsM7X_-81_ZmFewkk0";
+
+let currentSettings = {wa:'201000000000'};
+
+async function loadSiteSettings(){
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.main&select=data`, {
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`}
+    });
+    const rows = await res.json();
+    if(rows && rows.length){
+      const s = rows[0].data || {};
+      currentSettings.wa = s.whatsapp || currentSettings.wa;
+
+      // Logo
+      if(s.logoImg){
+        document.getElementById('logo-text-wrap').innerHTML = `<img src="${s.logoImg}" style="height:26px">`;
+      } else if(s.logoText){
+        const full = s.logoText.toUpperCase();
+        const hi = (s.logoHighlight||'ريل').toUpperCase();
+        const idx = full.indexOf(hi);
+        document.getElementById('logo-text-wrap').innerHTML = idx>=0
+          ? full.slice(0,idx)+'<span>'+hi+'</span>'+full.slice(idx+hi.length) : full;
+      }
+
+      // Pricing — keep in sync with admin
+      if(s.p1Name) document.getElementById('p1-name').textContent = s.p1Name;
+      if(s.p1Price) document.getElementById('p1-price').textContent = s.p1Price+' ج.م';
+      if(s.p2Name) document.getElementById('p2-name').textContent = s.p2Name;
+      if(s.p2Price) document.getElementById('p2-price').textContent = s.p2Price+' ج.م';
+      if(s.p3Name) document.getElementById('p3-name').textContent = s.p3Name;
+      if(s.p3Price) document.getElementById('p3-price').textContent = s.p3Price+' ج.م';
+    }
+  }catch(e){ console.error('settings load failed', e); }
+}
+loadSiteSettings();
+
+// Package selection
+document.querySelectorAll('.pkg-option').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    document.querySelectorAll('.pkg-option').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    opt.querySelector('input[type=radio]').checked = true;
+  });
+});
+
+// Photo handling
+let selectedFiles = [];
+function handleFiles(fileList){
+  const files = Array.from(fileList);
+  files.forEach(f=>{
+    if(!f.type.startsWith('image/')) return;
+    selectedFiles.push(f);
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const thumb = document.createElement('div');
+      thumb.className = 'photo-thumb';
+      const idx = selectedFiles.length - 1;
+      thumb.innerHTML = `<img src="${e.target.result}"><div class="rm" onclick="removePhoto(${idx}, this)">×</div>`;
+      document.getElementById('photo-previews').appendChild(thumb);
+      updateCount();
+    };
+    reader.readAsDataURL(f);
+  });
+}
+function removePhoto(idx, el){
+  el.parentElement.remove();
+  updateCount();
+}
+function updateCount(){
+  const n = document.querySelectorAll('.photo-thumb').length;
+  document.getElementById('photo-count').textContent = n > 0 ? `تم اختيار ${n} صورة` : '';
+}
+function handleDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+
+function getPkgLabel(val){
+  const map = {
+    basic: document.getElementById('p1-name').textContent + ' (' + document.getElementById('p1-price').textContent + ')',
+    furniture: document.getElementById('p2-name').textContent + ' (' + document.getElementById('p2-price').textContent + ')',
+    full: document.getElementById('p3-name').textContent + ' (' + document.getElementById('p3-price').textContent + ')',
+    unsure: 'غير متأكد — بحاجة إلى استشارة'
+  };
+  return map[val] || '—';
+}
+
+function submitForm(){
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const prop = document.getElementById('f-prop').value.trim();
+  const notes = document.getElementById('f-notes').value.trim();
+  const pkgEl = document.querySelector('input[name=pkg]:checked');
+  const pkg = pkgEl ? getPkgLabel(pkgEl.value) : '—';
+  const photoCount = document.querySelectorAll('.photo-thumb').length;
+
+  if(!name || !phone){
+    alert('يرجى إدخال الاسم ورقم الواتساب');
+    return;
+  }
+
+  const msg = `*طلب فيديو جديد — نون ريل إستيت*%0A%0A👤 الاسم: ${encodeURIComponent(name)}%0A📱 الهاتف: ${encodeURIComponent(phone)}%0A🏠 العقار: ${encodeURIComponent(prop||'—')}%0A📦 الباقة: ${encodeURIComponent(pkg)}%0A📷 عدد الصور المختارة: ${photoCount}%0A📝 ملاحظات: ${encodeURIComponent(notes||'—')}%0A%0A_(سيتم إرسال الصور بشكل منفصل بعد الرد على هذه الرسالة)_`;
+
+  window.open(`https://wa.me/${currentSettings.wa}?text=${msg}`, '_blank');
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('success-section').style.display = 'block';
+}
+</script>
+</body>
+</html>

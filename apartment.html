@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">تفاصيل العقار — نون ريل إستيت</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--black:#000;--white:#f5f5f7;--gray:#6e6e73;--blue:#2997ff;--border:rgba(255,255,255,0.1);--green:#25D366}
+body{background:var(--black);color:var(--white);font-family:'Inter','Cairo',sans-serif;-webkit-font-smoothing:antialiased}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:900;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(0,0,0,0.75);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:17px;font-weight:800;color:var(--white);text-decoration:none}
+.nav-logo span{color:var(--blue)}
+.nav-back{font-size:13px;color:var(--gray);text-decoration:none}
+
+/* LOADING / ERROR STATES */
+#loading, #error{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+#error{display:none}
+.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-icon{font-size:40px}
+
+/* MAIN CONTENT */
+#content{display:none;padding-top:52px}
+
+/* HERO POSTER */
+.poster-hero{position:relative;width:100%;height:60vh;min-height:400px;overflow:hidden;background:#0a0a0a}
+.poster-hero img{width:100%;height:100%;object-fit:cover}
+.poster-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.95) 100%)}
+.poster-info{position:absolute;bottom:0;left:0;right:0;padding:40px 24px;text-align:center}
+.poster-title{font-size:clamp(28px,5vw,48px);font-weight:800;letter-spacing:-1.5px;margin-bottom:8px}
+.poster-location{font-size:15px;color:rgba(245,245,247,0.6);font-family:'Cairo','Inter',sans-serif}
+.poster-price{display:inline-block;margin-top:16px;background:rgba(41,151,255,0.15);border:1px solid rgba(41,151,255,0.35);color:#7ab8ff;font-size:16px;font-weight:700;padding:8px 24px;border-radius:100px}
+
+/* SECTIONS */
+.section{max-width:900px;margin:0 auto;padding:60px 24px}
+.section-title{font-size:13px;font-weight:600;letter-spacing:2px;color:var(--blue);text-transform:uppercase;margin-bottom:24px;text-align:center;font-family:'Inter',sans-serif}
+
+/* VIDEOS */
+.video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.video-card{background:#0a0a0a;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.video-card video{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.video-card-label{padding:14px 18px;font-size:14px;font-weight:600;color:rgba(245,245,247,0.8)}
+
+/* PHOTOS */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.photo-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;transition:opacity 0.2s}
+.photo-grid img:hover{opacity:0.8}
+
+/* SPECS */
+.specs-box{background:#0a0a0a;border:1px solid var(--border);border-radius:16px;padding:28px 32px;font-size:15px;color:rgba(245,245,247,0.75);line-height:2;font-family:'Cairo','Inter',sans-serif;white-space:pre-line}
+
+/* CTA */
+.cta-section{text-align:center;padding:60px 24px 100px}
+.cta-title{font-size:24px;font-weight:800;margin-bottom:12px;letter-spacing:-0.5px}
+.cta-sub{font-size:15px;color:var(--gray);margin-bottom:28px;font-family:'Cairo','Inter',sans-serif}
+.btn-wa{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:#fff;padding:15px 34px;border-radius:980px;font-weight:700;font-size:15px;text-decoration:none;transition:opacity 0.2s}
+.btn-wa:hover{opacity:0.85}
+
+/* Lightbox */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:none;align-items:center;justify-content:center;padding:24px}
+#lightbox img{max-width:100%;max-height:100%;border-radius:8px}
+#lightbox-close{position:absolute;top:20px;left:20px;background:rgba(255,255,255,0.1);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer}
+
+.empty-note{text-align:center;color:var(--gray);font-size:13px;padding:20px;font-family:'Cairo','Inter',sans-serif}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">NON<span style="color:var(--blue)">REAL</span> ESTATE</a>
+  <a href="index.html" class="nav-back">← الرئيسية</a>
+</nav>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div style="color:var(--gray);font-size:14px">جارٍ تحميل بيانات العقار...</div>
+</div>
+
+<div id="error">
+  <div class="err-icon">🏚️</div>
+  <h2 style="font-size:20px;font-weight:700">العقار غير موجود</h2>
+  <p style="color:var(--gray);font-size:14px;font-family:'Cairo','Inter',sans-serif">تأكد من صحة الرابط أو تواصل معنا.</p>
+  <a href="index.html" style="color:var(--blue);margin-top:16px;text-decoration:none;font-size:14px">← العودة إلى الصفحة الرئيسية</a>
+</div>
+
+<div id="content">
+
+  <div class="poster-hero">
+    <img id="poster-img" src="" alt="">
+    <div class="poster-overlay"></div>
+    <div class="poster-info">
+      <div class="poster-title" id="apt-name">—</div>
+      <div class="poster-location" id="apt-location"></div>
+      <div class="poster-price" id="apt-price" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="section" id="videos-section">
+    <div class="section-title">جولة الفيديو</div>
+    <div class="video-grid" id="video-grid"></div>
+  </div>
+
+  <div class="section" id="photos-section" style="display:none">
+    <div class="section-title">صور العقار</div>
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+
+  <div class="section" id="specs-section" style="display:none">
+    <div class="section-title">المواصفات</div>
+    <div class="specs-box" id="specs-box"></div>
+  </div>
+
+  <div class="cta-section">
+    <div class="cta-title">هل أنت مهتم بهذا العقار؟</div>
+    <div class="cta-sub">تواصل معنا مباشرة عبر واتساب لمعرفة التفاصيل وترتيب المعاينة</div>
+    <a href="#" id="wa-btn" class="btn-wa" target="_blank">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      تواصل عبر واتساب
+    </a>
+  </div>
+
+</div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightbox-img" src="">
+</div>
+
+<script>
+const SUPABASE_URL = "https://lhaundlftjseqronzinl.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoYXVuZGxmdGpzZXFyb256aW5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwNDI3NTYsImV4cCI6MjEwMTYxODc1Nn0.cau52ENpOywFNtVkg3GaZ4t7jIsM7X_-81_ZmFewkk0";
+
+function getIdFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const qid = params.get('id');
+  if(qid) return qid;
+  // fallback: support /apartment.html/xxx style paths if ever used
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  return parts[parts.length-1] !== 'apartment.html' ? parts[parts.length-1] : null;
+}
+
+async function loadApartment(){
+  const id = getIdFromUrl();
+  if(!id){ showError(); return; }
+
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/apartments?id=eq.${encodeURIComponent(id)}&select=*`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    const data = await res.json();
+    if(!data || !data.length){ showError(); return; }
+    renderApartment(data[0]);
+  }catch(e){
+    console.error(e);
+    showError();
+  }
+}
+
+function showError(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('error').style.display='flex';
+}
+
+function renderApartment(apt){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('content').style.display='block';
+  document.title = (apt.name || 'عقار') + ' — نون ريل إستيت';
+
+  document.getElementById('apt-name').textContent = apt.name || 'عقار بدون اسم';
+  document.getElementById('apt-location').textContent = apt.location || '';
+
+  if(apt.price){
+    const priceEl = document.getElementById('apt-price');
+    priceEl.textContent = apt.price;
+    priceEl.style.display = 'inline-block';
+  }
+
+  if(apt.poster_url){
+    document.getElementById('poster-img').src = apt.poster_url;
+  } else if(apt.photos && apt.photos.length){
+    document.getElementById('poster-img').src = apt.photos[0];
+  }
+
+  // Videos
+  const videoGrid = document.getElementById('video-grid');
+  let hasVideo = false;
+  if(apt.video_url){
+    hasVideo = true;
+    videoGrid.innerHTML += `
+      <div class="video-card">
+        <video controls preload="metadata" src="${apt.video_url}"></video>
+        <div class="video-card-label">🎬 الجولة الأساسية</div>
+      </div>`;
+  }
+  if(apt.video2_url){
+    hasVideo = true;
+    videoGrid.innerHTML += `
+      <div class="video-card">
+        <video controls preload="metadata" src="${apt.video2_url}"></video>
+        <div class="video-card-label">🎬 نسخة بديلة (أثاث وإضاءة)</div>
+      </div>`;
+  }
+  if(!hasVideo) document.getElementById('videos-section').style.display = 'none';
+
+  // Photos
+  if(apt.photos && apt.photos.length){
+    document.getElementById('photos-section').style.display = 'block';
+    const grid = document.getElementById('photo-grid');
+    apt.photos.forEach(url=>{
+      const img = document.createElement('img');
+      img.src = url;
+      img.onclick = ()=>openLightbox(url);
+      grid.appendChild(img);
+    });
+  }
+
+  // Specs
+  if(apt.specs){
+    document.getElementById('specs-section').style.display = 'block';
+    document.getElementById('specs-box').textContent = apt.specs;
+  }
+
+  // WhatsApp
+  let waNum = '201000000000';
+  try{ const s = JSON.parse(localStorage.getItem('nre_video_settings')||'{}'); if(s.whatsapp) waNum = s.whatsapp; }catch(e){}
+  const msg = encodeURIComponent(`مهتم بالعقار: ${apt.name || ''}`);
+  document.getElementById('wa-btn').href = `https://wa.me/${waNum}?text=${msg}`;
+}
+
+function openLightbox(src){
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').style.display = 'flex';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').style.display = 'none';
+}
+
+loadApartment();
+</script>
+</body>
+</html>
